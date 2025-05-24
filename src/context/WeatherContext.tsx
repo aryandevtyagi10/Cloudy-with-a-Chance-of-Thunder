@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { WeatherData, ForecastData, City, WeatherContextType } from '../types/weather';
+import { WeatherData, ForecastData, WeatherContextType } from '../types/weather';
 import { fetchWeatherData, fetchForecastData } from '../services/weatherService';
+import { useQuery } from 'react-query';
 
 const WeatherContext = createContext<WeatherContextType | undefined>(undefined);
 
@@ -13,52 +14,36 @@ export const useWeather = () => {
 };
 
 export const WeatherProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Get saved city from localStorage or default to Mumbai
-  const savedCity = localStorage.getItem('weatherCity') as City | null;
-  const [city, setCity] = useState<City>(savedCity || 'Mumbai');
-  const [weather, setWeather] = useState<WeatherData | null>(null);
-  const [forecast, setForecast] = useState<ForecastData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const savedCity = localStorage.getItem('weatherCity') || 'Mumbai';
+  const [city, setCity] = useState<string>(savedCity);
 
-  // Save city to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('weatherCity', city);
   }, [city]);
 
-  const refreshWeather = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const weatherData = await fetchWeatherData(city);
-      setWeather(weatherData);
-      
-      const forecastData = await fetchForecastData(city);
-      setForecast(forecastData);
-    } catch (err) {
-      setError('Failed to load weather data. Please try again later.');
-      console.error('Weather fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [city]);
+  const { data: weather, error: weatherError, isLoading: weatherLoading, refetch: refetchWeather } = useQuery(
+    ['weather', city],
+    () => fetchWeatherData(city),
+    { refetchInterval: 30 * 60 * 1000 }
+  );
 
-  useEffect(() => {
-    refreshWeather();
-    
-    // Refresh weather data every 30 minutes
-    const intervalId = setInterval(refreshWeather, 30 * 60 * 1000);
-    
-    return () => clearInterval(intervalId);
-  }, [refreshWeather]);
+  const { data: forecast, error: forecastError } = useQuery(
+    ['forecast', city],
+    () => fetchForecastData(city),
+    { refetchInterval: 30 * 60 * 1000 }
+  );
+
+  const refreshWeather = useCallback(() => {
+    refetchWeather();
+  }, [refetchWeather]);
 
   const value = {
     city,
     setCity,
-    weather,
-    forecast,
-    loading,
-    error,
+    weather: weather || null,
+    forecast: forecast || null,
+    loading: weatherLoading,
+    error: weatherError ? 'Failed to load weather data' : null,
     refreshWeather
   };
 

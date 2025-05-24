@@ -58,14 +58,18 @@ export interface ForecastItem {
   };
 }
 
-export type City = 'Mumbai' | 'Delhi' | 'Kolkata' | 'Chennai' | 'Bangalore' | 'Hyderabad';
-
 export interface WeatherContextType {
-  city: City;
-  setCity: (city: City) => void;
+  city: string;
+  setCity: (city: string) => void;
   weather: WeatherData | null;
   forecast: ForecastData | null;
   loading: boolean;
   error: string | null;
   refreshWeather: () => Promise<void>;
+}
+
+export interface WeatherAdvisory {
+  condition: string;
+  advice: string;
+  joke?: string;
 }

@@ -13,7 +13,11 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "framer-motion": "^11.0.8"
+    "framer-motion": "^11.0.8",
+    "react-query": "^3.39.3",
+    "use-debounce": "^10.0.0",
+    "@fontsource/playfair-display": "^5.0.19",
+    "@fontsource/inter": "^5.0.16"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
